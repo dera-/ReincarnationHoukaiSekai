@@ -13,19 +13,19 @@ trait FieldMovingObject {
     restPoint match {
       case r if r <= 0 => routes
       case _ => {
-        val currentPlace = currentRoute.getCurrentPlace()
-        val nextPlaces: Array[(Int, Int)] = Array(
+        val currentPlace = currentRoute.getReachPlace()
+        val nextPlaces: List[(Int, Int)] = List(
           (currentPlace._1 + 1, currentPlace._2),
           (currentPlace._1 - 1, currentPlace._2),
           (currentPlace._1, currentPlace._2 + 1),
           (currentPlace._1, currentPlace._2 - 1)
         )
-        var newRoutes: List[RouteEntity] = Nil
+        var newRoutes: List[RouteEntity] = List.empty
         for (place <- nextPlaces) {
-          val places = currentRoute.places.clone() :+ place
+          val places = currentRoute.places :+ place
           val newRoute = new RouteEntity(places)
-          if (this.mapModel.isInMap(place) && !this.isDeplicated(newRoute, routes)) {
-            val chipEntity = this.mapModel.getMapChipEntity(place)
+          if (this.mapModel.isMovable(place) && !this.isDuplicated(newRoute, routes)) {
+            val chipEntity = this.mapModel.entity.getMapChipEntity(place)
             newRoutes = newRoutes ::: this.getRoutes(routes :+ newRoute, newRoute, restPoint - chipEntity.cost)
           }
         }
@@ -34,7 +34,7 @@ trait FieldMovingObject {
     }
   }
 
-  private def isDeplicated(targetRoute: RouteEntity, pastRoutes: List[RouteEntity]): Boolean = {
+  private def isDuplicated(targetRoute: RouteEntity, pastRoutes: List[RouteEntity]): Boolean = {
     pastRoutes.exists(route => targetRoute.isSame(route))
   }
 }

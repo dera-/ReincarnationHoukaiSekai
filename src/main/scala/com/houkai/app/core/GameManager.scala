@@ -8,6 +8,7 @@ import com.houkai.app.view._
 object GameManager {
   private val loader: LoadQueue = new LoadQueue(false)
   private var currentStage: Stage = null
+  private var currentDisplayObjects: List[DisplayObject] = List.empty
 
   def getImage(imageKey: String): Object = {
     this.loader.getResult(imageKey)
@@ -15,6 +16,14 @@ object GameManager {
 
   def setCurrentStage(canvas: dom.html.Canvas): Unit = {
     this.currentStage = new Stage(canvas)
+  }
+
+  def addToCurrentStage(displayObject: DisplayObject): Unit = {
+    this.currentStage.addChild(displayObject)
+  }
+
+  def deleteFromCurrentStage(displayObject: DisplayObject): Unit = {
+    this.currentStage.removeChild(displayObject)
   }
 
   def preLoad(manifest: Object): Unit = {
@@ -36,10 +45,26 @@ object GameManager {
       val stageWidth = this.currentStage.canvas.width
       val stageHeight = this.currentStage.canvas.height
       background.graphics.beginBitmapFill(this.loader.getResult("background")).drawRect(0, 0, stageWidth, stageHeight)
-      val charaView = new GameCharacterOnFieldView("character")
-      val mapView = new FieldMapView("tile1", 10, 10)
-      charaView.playAction("walk")
+      val mapView = FieldMapView.generate(1)
+      val charaView = GameCharacterOnFieldView.generate(1, (0 ,0))
       this.currentStage.addChild(background, mapView.getContainer(), charaView.getSprite())
+      charaView.getSprite() :: this.currentDisplayObjects
+      mapView.getContainer() :: this.currentDisplayObjects
+      FieldEvent.addEvent(Thinking)
+//      val hitObject = new Shape()
+//      hitObject.graphics.beginFill("#000000").drawRect(0, 0, this.currentStage.getBounds().width, this.currentStage.getBounds().height)
+//      this.currentStage.hitArea = hitObject
+//      this.currentStage.addEventListener(
+//        "click",
+//        (e :Object) => {
+//          val event = e.asInstanceOf[Event]
+//          // TODO 移動キャンセルイベントの追加(残念ながらclick位置の判別は必要そう)
+//          FieldEvent.showCurrentEvent() match {
+//            case _ => true
+//          }
+//        },
+//        false
+//      )
       this.currentStage.update()
       Ticker.setFPS(30)
       Ticker.useRAF = true
